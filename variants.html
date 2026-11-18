@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Варианты блока проектов</title>
+<link rel="icon" type="image/png" href="favicon-48.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://db.onlinewebfonts.com/c/95cecf452d3208890088a5b4c19c7ecf?family=Helvetica+Neue+ME">
+<style>
+  @font-face{ font-family:'Trafaret Kit'; src:url('trafaretkit.woff2') format('woff2'), url('trafaretkit.ttf') format('truetype'); font-display:swap; }
+  :root{
+    --void:#161616; --graphite:#4c4c4c; --ash:#cccccc; --frost:#ffffff;
+    --paper:#efeee9; --paper-light:#f8f7f3; --border:#e7e4da;
+    --terracotta:#b5654a; --slate:#5b6b7a; --olive:#7a7c4a;
+    --sans:'Space Grotesk', 'Helvetica Neue ME', Helvetica, Arial, sans-serif;
+    --hn:'Helvetica Neue ME', Helvetica, Arial, sans-serif;
+    --display:'Trafaret Kit', 'Helvetica Neue ME', sans-serif;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{ margin:0; background:var(--paper); color:var(--void); font-family:var(--sans); -webkit-font-smoothing:antialiased; }
+  img{ display:block; max-width:100%; }
+  button{ font:inherit; color:inherit; cursor:pointer; }
+
+  /* ---------- навигация по вариантам ---------- */
+  .topnav{ position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:8px; padding:12px 24px; background:rgba(239,238,233,.86); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-bottom:1px solid var(--border); overflow-x:auto; }
+  .topnav .brand{ font-family:var(--display); text-transform:uppercase; font-size:18px; margin-right:12px; white-space:nowrap; }
+  .topnav a{ text-decoration:none; color:var(--graphite); font-size:13px; padding:8px 14px; border-radius:9999px; border:1px solid transparent; white-space:nowrap; }
+  .topnav a:hover{ border-color:var(--ash); color:var(--void); }
+  .topnav a.active{ background:var(--void); color:var(--frost); }
+  .topnav .spacer{ flex:1; }
+  .toggle{ display:flex; align-items:center; gap:8px; font-size:12px; color:var(--graphite); white-space:nowrap; cursor:pointer; user-select:none; }
+  .toggle input{ accent-color:var(--void); }
+
+  .variant{ padding:96px 24px 120px; border-bottom:1px solid var(--border); scroll-margin-top:56px; }
+  .v-head{ max-width:1100px; margin:0 auto 56px; display:grid; grid-template-columns:1fr 1fr; gap:24px 48px; align-items:end; }
+  .v-num{ font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--graphite); }
+  .v-title{ font-family:var(--display); text-transform:uppercase; font-weight:400; font-size:clamp(36px,5vw,64px); line-height:.95; margin:10px 0 0; }
+  .v-notes{ font-size:13px; line-height:1.55; color:var(--graphite); }
+  .v-notes b{ color:var(--void); font-weight:500; }
+  .v-notes p{ margin:0 0 8px; }
+  @media (max-width:760px){ .v-head{ grid-template-columns:1fr; } .variant{ padding:64px 16px 80px; } }
+
+  .chip{ display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:9999px; font-size:11px; letter-spacing:.04em; text-transform:uppercase; }
+
+  /* =========================================================
+     1. ПАПКИ
+     ========================================================= */
+  .folders{ max-width:1100px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:72px 40px; padding-top:40px; }
+  .folder{ position:relative; aspect-ratio:4/3.1; cursor:pointer; perspective:1400px; --c:#161616; border:none; background:none; padding:0; text-align:left; }
+  .folder:nth-child(3n+2){ margin-top:24px; }
+  .folder:nth-child(3n+3){ margin-top:8px; }
+  /* задняя стенка с закладкой */
+  .folder-back{ position:absolute; inset:0; border-radius:6px 18px 18px 18px; background:color-mix(in srgb, var(--c) 78%, #000); box-shadow:0 24px 40px -24px rgba(22,22,22,.55); }
+  .folder-tab{ position:absolute; left:0; top:-26px; height:30px; padding:0 18px 0 16px; display:flex; align-items:center; border-radius:12px 14px 0 0; background:color-mix(in srgb, var(--c) 78%, #000); color:rgba(255,255,255,.82); font-size:12px; letter-spacing:.04em; text-transform:uppercase; max-width:70%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .folder:nth-child(3n+2) .folder-tab{ left:22%; }
+  .folder:nth-child(3n+3) .folder-tab{ left:44%; }
+  /* листы-скриншоты */
+  .sheet{ position:absolute; left:7%; right:7%; top:6%; height:78%; border-radius:8px; overflow:hidden; background:var(--frost); box-shadow:0 10px 24px -12px rgba(0,0,0,.45); transition:transform .55s cubic-bezier(.2,.8,.2,1); }
+  .sheet img{ width:100%; height:100%; object-fit:cover; object-position:top center; }
+  .sheet:nth-of-type(1){ transform:translateY(4%) rotate(-2deg); }
+  .sheet:nth-of-type(2){ transform:translateY(2%) rotate(1.5deg); }
+  .sheet:nth-of-type(3){ transform:translateY(0) rotate(0); }
+  /* передняя стенка */
+  .folder-front{ position:absolute; left:0; right:0; bottom:0; height:74%; border-radius:16px 16px 18px 18px; background:linear-gradient(170deg, color-mix(in srgb, var(--c) 92%, #fff) 0%, var(--c) 55%); transform-origin:bottom center; transition:transform .55s cubic-bezier(.2,.8,.2,1), box-shadow .55s; box-shadow:0 -1px 0 rgba(255,255,255,.18) inset, 0 -12px 30px -18px rgba(0,0,0,.6); padding:22px 22px 20px; display:flex; flex-direction:column; justify-content:space-between; color:var(--frost); overflow:hidden; }
+  .folder-front::after{ content:''; position:absolute; inset:0; background:repeating-linear-gradient(115deg, rgba(255,255,255,.035) 0 2px, transparent 2px 7px); pointer-events:none; }
+  .folder-front .ff-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; position:relative; z-index:1; }
+  .folder-front .ff-logo{ height:34px; width:auto; max-width:55%; object-fit:contain; object-position:left; filter:brightness(0) invert(1); opacity:.92; }
+  .stamp{ border:1.5px solid rgba(255,255,255,.55); color:rgba(255,255,255,.85); border-radius:8px; padding:5px 9px; font-size:10px; letter-spacing:.08em; text-transform:uppercase; transform:rotate(4deg); line-height:1.25; text-align:center; flex-shrink:0; }
+  .folder-front h3{ position:relative; z-index:1; margin:0; font-family:var(--hn); font-weight:500; font-size:clamp(22px,2.2vw,28px); letter-spacing:-.01em; }
+  .folder-front p{ position:relative; z-index:1; margin:6px 0 0; font-size:13px; line-height:1.4; color:rgba(255,255,255,.72); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .folder-front .ff-open{ position:relative; z-index:1; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:rgba(255,255,255,.6); margin-top:10px; }
+  /* открытие */
+  .folder:hover .folder-front, .folder:focus-visible .folder-front{ transform:rotateX(-28deg); box-shadow:0 -1px 0 rgba(255,255,255,.18) inset, 0 30px 40px -20px rgba(0,0,0,.6); }
+  .folder:hover .sheet:nth-of-type(1), .folder:focus-visible .sheet:nth-of-type(1){ transform:translate(-14%,-34%) rotate(-9deg); }
+  .folder:hover .sheet:nth-of-type(2), .folder:focus-visible .sheet:nth-of-type(2){ transform:translate(13%,-40%) rotate(7deg); }
+  .folder:hover .sheet:nth-of-type(3), .folder:focus-visible .sheet:nth-of-type(3){ transform:translate(0,-50%) rotate(-1deg); }
+  .folder:focus-visible{ outline:2px solid var(--void); outline-offset:10px; border-radius:18px; }
+  /* на тач-устройствах листы выглядывают сразу */
+  @media (hover:none){
+    .folder .sheet:nth-of-type(1){ transform:translate(-8%,-18%) rotate(-6deg); }
+    .folder .sheet:nth-of-type(2){ transform:translate(8%,-22%) rotate(5deg); }
+    .folder .sheet:nth-of-type(3){ transform:translate(0,-26%) rotate(-1deg); }
+  }
+
+  /* =========================================================
+     2. ХОЛСТ FIGMA
+     ========================================================= */
+  .figma{ max-width:1200px; margin:0 auto; height:680px; border-radius:16px; overflow:hidden; display:grid; grid-template-rows:44px 1fr; grid-template-columns:220px 1fr; background:#2c2c2c; box-shadow:0 40px 80px -40px rgba(22,22,22,.55); font-family:'Inter', var(--sans); }
+  .fg-bar{ grid-column:1 / -1; background:#2c2c2c; border-bottom:1px solid #3a3a3a; display:flex; align-items:center; gap:14px; padding:0 14px; color:#e6e6e6; font-size:12px; }
+  .fg-bar .tools{ display:flex; gap:4px; }
+  .fg-bar .tools span{ width:30px; height:30px; display:grid; place-items:center; border-radius:6px; color:#bdbdbd; font-size:14px; }
+  .fg-bar .tools span.on{ background:#0d99ff; color:#fff; }
+  .fg-bar .file{ flex:1; text-align:center; color:#bdbdbd; }
+  .fg-bar .file b{ color:#fff; font-weight:500; }
+  .fg-bar .zoom{ color:#bdbdbd; min-width:44px; text-align:right; }
+  .fg-share{ background:#0d99ff; color:#fff; border:none; border-radius:6px; padding:6px 12px; font-size:12px; }
+  .fg-layers{ background:#2c2c2c; border-right:1px solid #3a3a3a; color:#e6e6e6; font-size:12px; overflow:auto; padding:10px 0; }
+  .fg-layers h4{ margin:0; padding:6px 14px 10px; font-size:11px; font-weight:500; color:#9a9a9a; }
+  .fg-layer{ display:flex; align-items:center; gap:8px; width:100%; border:none; background:none; color:#e6e6e6; text-align:left; padding:7px 14px; font-size:12px; }
+  .fg-layer:hover{ background:#383838; }
+  .fg-layer.on{ background:#0d99ff33; }
+  .fg-layer i{ font-style:normal; color:#9a9a9a; font-size:11px; }
+  .fg-canvas{ position:relative; overflow:hidden; background:#e5e5e5; background-image:radial-gradient(#cfcfcf 1px, transparent 1px); background-size:20px 20px; cursor:grab; touch-action:none; }
+  .fg-canvas.dragging{ cursor:grabbing; }
+  .fg-world{ position:absolute; left:0; top:0; transform-origin:0 0; will-change:transform; }
+  .fg-frame{ position:absolute; cursor:pointer; }
+  .fg-frame .lbl{ position:absolute; left:0; top:-20px; font-size:11px; color:#7a7a7a; white-space:nowrap; }
+  .fg-frame .box{ width:100%; height:100%; background:#fff; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.12); outline:1px solid transparent; transition:outline-color .15s; }
+  .fg-frame .box img{ width:100%; height:100%; object-fit:cover; object-position:top; }
+  .fg-frame:hover .box, .fg-frame.on .box{ outline:2px solid #0d99ff; }
+  .fg-frame:hover .lbl, .fg-frame.on .lbl{ color:#0d99ff; }
+  .fg-frame.cover .box{ display:flex; flex-direction:column; justify-content:space-between; padding:26px; color:#fff; }
+  .fg-frame.cover h3{ margin:0; font-family:var(--hn); font-weight:500; font-size:30px; }
+  .fg-frame.cover p{ margin:8px 0 0; font-size:14px; line-height:1.4; color:rgba(255,255,255,.75); max-width:85%; }
+  .fg-frame.cover img.logo{ width:auto; height:40px; object-fit:contain; filter:brightness(0) invert(1); opacity:.9; }
+  .fg-sticky{ position:absolute; width:190px; padding:16px; background:#ffe073; font-size:13px; line-height:1.4; box-shadow:0 8px 16px -10px rgba(0,0,0,.4); transform:rotate(-2deg); color:#3a3000; font-family:var(--sans); }
+  .fg-cursor{ position:absolute; left:0; top:0; z-index:5; pointer-events:none; transition:transform 1.4s cubic-bezier(.45,.05,.25,1); }
+  .fg-cursor svg{ display:block; }
+  .fg-cursor span{ position:absolute; left:14px; top:18px; background:var(--terracotta); color:#fff; font-size:11px; padding:3px 8px; border-radius:4px 10px 10px 10px; white-space:nowrap; }
+  .fg-hint{ position:absolute; right:12px; bottom:12px; background:rgba(44,44,44,.85); color:#ddd; font-size:11px; padding:6px 10px; border-radius:6px; pointer-events:none; }
+  @media (max-width:760px){ .figma{ grid-template-columns:1fr; height:560px; } .fg-layers{ display:none; } .fg-bar .tools{ display:none; } }
+
+  /* =========================================================
+     3. СТОПКА КАРТОЧЕК
+     ========================================================= */
+  .stack-wrap{ max-width:1100px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:center; }
+  .stack{ position:relative; height:520px; touch-action:pan-y; user-select:none; }
+  .s-card{ position:absolute; left:50%; top:50%; width:min(380px, 86vw); height:470px; margin:-235px 0 0 calc(min(380px, 86vw) / -2); border-radius:24px; background:var(--c); color:#fff; box-shadow:0 30px 50px -30px rgba(22,22,22,.6); overflow:hidden; display:flex; flex-direction:column; transition:transform .5s cubic-bezier(.2,.8,.2,1), opacity .4s; cursor:grab; }
+  .s-card.dragging{ transition:none; cursor:grabbing; }
+  .s-card .s-shot{ flex:1; margin:12px 12px 0; border-radius:14px; overflow:hidden; background:rgba(255,255,255,.08); }
+  .s-card .s-shot img{ width:100%; height:100%; object-fit:cover; object-position:top; pointer-events:none; }
+  .s-card .s-body{ padding:20px 22px 22px; }
+  .s-card .s-meta{ display:flex; justify-content:space-between; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:rgba(255,255,255,.6); }
+  .s-card h3{ margin:8px 0 4px; font-family:var(--hn); font-weight:500; font-size:26px; }
+  .s-card p{ margin:0; font-size:13px; line-height:1.4; color:rgba(255,255,255,.72); }
+  .stack-side h3{ font-family:var(--hn); font-weight:500; font-size:34px; margin:0 0 10px; }
+  .stack-side p{ color:var(--graphite); line-height:1.55; margin:0 0 22px; font-size:15px; }
+  .stack-count{ font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--graphite); margin-bottom:14px; }
+  .btn-row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .btn{ border:none; border-radius:9999px; padding:12px 22px; background:var(--void); color:var(--frost); font-size:13px; letter-spacing:.03em; text-transform:uppercase; }
+  .btn.ghost{ background:none; color:var(--void); border:1px solid var(--ash); }
+  @media (max-width:860px){ .stack-wrap{ grid-template-columns:1fr; } .stack-side{ text-align:center; } .btn-row{ justify-content:center; } }
+
+  /* =========================================================
+     4. РЕДАКЦИОННЫЙ СПИСОК
+     ========================================================= */
+  .ed{ max-width:1100px; margin:0 auto; border-top:1px solid var(--void); }
+  .ed-row{ display:grid; grid-template-columns:60px 1fr 220px 70px 40px; align-items:center; gap:20px; padding:26px 4px; border:none; border-bottom:1px solid var(--ash); width:100%; background:none; text-align:left; position:relative; transition:padding .35s cubic-bezier(.2,.8,.2,1), color .3s; }
+  .ed-row::before{ content:''; position:absolute; inset:0; background:var(--c); transform:scaleY(0); transform-origin:bottom; transition:transform .45s cubic-bezier(.2,.8,.2,1); z-index:0; }
+  .ed-row > *{ position:relative; z-index:1; }
+  .ed-row:hover{ color:#fff; padding-left:20px; padding-right:20px; }
+  .ed-row:hover::before{ transform:scaleY(1); }
+  .ed-row:hover .ed-type, .ed-row:hover .ed-n{ color:rgba(255,255,255,.7); }
+  .ed-n{ font-size:13px; color:var(--graphite); font-variant-numeric:tabular-nums; }
+  .ed-title{ font-family:var(--display); text-transform:uppercase; font-size:clamp(30px,5vw,64px); line-height:.95; letter-spacing:-.01em; }
+  .ed-type{ font-size:13px; color:var(--graphite); line-height:1.35; }
+  .ed-year{ font-size:13px; text-align:right; font-variant-numeric:tabular-nums; }
+  .ed-arrow{ font-size:22px; text-align:right; transition:transform .35s; }
+  .ed-row:hover .ed-arrow{ transform:translateX(6px) rotate(-45deg); }
+  .ed-preview{ position:fixed; left:0; top:0; width:340px; aspect-ratio:16/10; border-radius:14px; overflow:hidden; pointer-events:none; z-index:40; opacity:0; transform:translate(-50%,-50%) scale(.85) rotate(-3deg); transition:opacity .25s, transform .35s cubic-bezier(.2,.8,.2,1); box-shadow:0 30px 60px -20px rgba(0,0,0,.5); background:#222; }
+  .ed-preview.show{ opacity:1; transform:translate(-50%,-50%) scale(1) rotate(-3deg); }
+  .ed-preview img{ width:100%; height:100%; object-fit:cover; object-position:top; }
+  .ed-thumb{ display:none; }
+  @media (max-width:760px){
+    .ed-row{ grid-template-columns:32px 1fr 40px; gap:12px; }
+    .ed-type, .ed-year{ display:none; }
+    .ed-thumb{ display:block; grid-column:2 / 3; border-radius:10px; overflow:hidden; aspect-ratio:16/9; }
+    .ed-thumb img{ width:100%; height:100%; object-fit:cover; object-position:top; }
+    .ed-preview{ display:none; }
+  }
+
+  /* =========================================================
+     5. РАБОЧИЙ СТОЛ
+     ========================================================= */
+  .desk{ max-width:1200px; margin:0 auto; height:660px; position:relative; border-radius:16px; overflow:hidden; background:radial-gradient(120% 90% at 85% 0%, #d9d6cb 0%, transparent 55%), radial-gradient(90% 80% at 0% 100%, #e2cfc6 0%, transparent 55%), #ebe8df; box-shadow:0 40px 80px -40px rgba(22,22,22,.5); font-family:var(--sans); }
+  .desk-menubar{ position:absolute; top:0; left:0; right:0; height:28px; display:flex; align-items:center; gap:18px; padding:0 14px; background:rgba(255,255,255,.55); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); font-size:12px; z-index:30; }
+  .desk-menubar b{ font-weight:700; }
+  .desk-menubar .r{ margin-left:auto; color:var(--graphite); font-variant-numeric:tabular-nums; }
+  .desk-watermark{ position:absolute; right:40px; bottom:90px; font-family:var(--display); font-size:clamp(60px,10vw,140px); line-height:.85; text-transform:uppercase; color:rgba(22,22,22,.07); text-align:right; pointer-events:none; }
+  .desk-icons{ position:absolute; top:52px; left:22px; display:flex; flex-direction:column; gap:14px; z-index:2; }
+  .d-icon{ width:96px; border:none; background:none; display:flex; flex-direction:column; align-items:center; gap:6px; padding:8px 4px; border-radius:10px; font-size:12px; text-align:center; line-height:1.2; }
+  .d-icon:hover, .d-icon.on{ background:rgba(22,22,22,.08); }
+  .d-icon .ico{ width:58px; height:46px; position:relative; }
+  .d-icon .ico::before{ content:''; position:absolute; left:0; top:0; width:24px; height:10px; border-radius:4px 6px 0 0; background:color-mix(in srgb, var(--c) 78%, #000); }
+  .d-icon .ico::after{ content:''; position:absolute; left:0; right:0; bottom:0; top:6px; border-radius:4px 6px 6px 6px; background:linear-gradient(170deg, color-mix(in srgb, var(--c) 85%, #fff), var(--c)); box-shadow:0 6px 10px -6px rgba(0,0,0,.5); }
+  .d-win{ position:absolute; width:520px; max-width:calc(100% - 40px); background:var(--paper-light); border-radius:14px; box-shadow:0 30px 60px -20px rgba(22,22,22,.55), 0 0 0 1px rgba(22,22,22,.08); overflow:hidden; display:flex; flex-direction:column; animation:winIn .35s cubic-bezier(.2,.8,.2,1); }
+  @keyframes winIn{ from{ opacity:0; transform:scale(.92) translateY(14px); } to{ opacity:1; transform:none; } }
+  .d-win-bar{ height:38px; display:flex; align-items:center; gap:8px; padding:0 12px; background:var(--frost); border-bottom:1px solid var(--border); cursor:grab; user-select:none; touch-action:none; }
+  .d-win-bar .dots{ display:flex; gap:6px; }
+  .d-win-bar .dots i{ width:12px; height:12px; border-radius:50%; display:block; }
+  .d-win-bar .dots i:nth-child(1){ background:#ff5f57; cursor:pointer; }
+  .d-win-bar .dots i:nth-child(2){ background:#febc2e; }
+  .d-win-bar .dots i:nth-child(3){ background:#28c840; }
+  .d-win-bar .t{ flex:1; text-align:center; font-size:12px; color:var(--graphite); margin-right:48px; }
+  .d-win-shot{ aspect-ratio:16/9; background:#222; }
+  .d-win-shot img{ width:100%; height:100%; object-fit:cover; object-position:top; }
+  .d-win-body{ padding:16px 18px 18px; }
+  .d-win-body h3{ margin:0 0 4px; font-family:var(--hn); font-weight:500; font-size:22px; }
+  .d-win-body p{ margin:0 0 12px; font-size:13px; color:var(--graphite); line-height:1.45; }
+  .d-win-body .btn{ padding:9px 16px; font-size:12px; }
+  .desk-dock{ position:absolute; bottom:12px; left:50%; transform:translateX(-50%); display:flex; gap:10px; padding:8px 12px; background:rgba(255,255,255,.5); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-radius:18px; z-index:30; box-shadow:0 10px 30px -15px rgba(0,0,0,.35); }
+  .desk-dock button{ width:44px; height:44px; border-radius:12px; border:none; background:var(--c); color:#fff; font-size:11px; font-weight:700; transition:transform .2s; position:relative; }
+  .desk-dock button:hover{ transform:translateY(-6px) scale(1.12); }
+  .desk-dock button.open::after{ content:''; position:absolute; bottom:-6px; left:50%; width:4px; height:4px; margin-left:-2px; border-radius:50%; background:var(--void); }
+  @media (max-width:760px){ .desk{ height:600px; } .d-win{ width:calc(100% - 24px); left:12px !important; } }
+
+  /* ---------- модалка (общая для всех вариантов) ---------- */
+  .modal{ position:fixed; inset:0; z-index:100; display:none; }
+  .modal.open{ display:block; }
+  .modal-scrim{ position:absolute; inset:0; background:rgba(22,22,22,.55); backdrop-filter:blur(4px); }
+  .modal-panel{ position:absolute; top:4vh; left:50%; transform:translateX(-50%); width:min(900px, 94vw); max-height:92vh; overflow:auto; background:var(--paper-light); border-radius:24px; padding:36px; animation:winIn .35s cubic-bezier(.2,.8,.2,1); }
+  .modal-close{ position:sticky; top:0; float:right; width:40px; height:40px; border-radius:50%; border:1px solid var(--ash); background:var(--frost); font-size:18px; }
+  .modal-meta{ display:flex; gap:24px; flex-wrap:wrap; font-size:12px; color:var(--graphite); text-transform:uppercase; letter-spacing:.05em; margin-bottom:10px; }
+  .modal h2{ font-family:var(--hn); font-weight:500; font-size:clamp(28px,4vw,44px); margin:0 0 10px; }
+  .modal .desc{ color:var(--graphite); line-height:1.55; margin:0 0 24px; max-width:680px; }
+  .modal .shots{ display:grid; gap:14px; }
+  .modal .shots figure{ margin:0; }
+  .modal .shots img{ border-radius:14px; border:1px solid var(--border); width:100%; }
+  .modal .shots figcaption{ font-size:12px; color:var(--graphite); margin-top:6px; }
+  .modal .note{ margin-top:22px; font-size:12px; color:var(--graphite); }
+</style>
+</head>
+<body>
+
+<nav class="topnav" id="topnav">
+  <span class="brand">Варианты</span>
+  <a href="#v-folders">01 Папки</a>
+  <a href="#v-figma">02 Холст Figma</a>
+  <a href="#v-stack">03 Стопка</a>
+  <a href="#v-list">04 Список</a>
+  <a href="#v-desk">05 Рабочий стол</a>
+  <span class="spacer"></span>
+  <label class="toggle"><input type="checkbox" id="withSites"> + сайты (проверить на 7 проектах)</label>
+</nav>
+
+<!-- 1. Папки -->
+<section class="variant" id="v-folders">
+  <div class="v-head">
+    <div><div class="v-num">Вариант 01</div><h2 class="v-title">Папки</h2></div>
+    <div class="v-notes">
+      <p><b>Как работает:</b> наведи на папку — она приоткрывается, и из неё выглядывают скриншоты кейса. Клик открывает кейс.</p>
+      <p><b>Плюсы:</b> превью работы до клика, продолжает «бумажную» стилистику сайта. <b>Минусы:</b> на телефоне нет наведения — там листы выглядывают сразу.</p>
+    </div>
+  </div>
+  <div class="folders" id="folders"></div>
+</section>
+
+<!-- 2. Холст Figma -->
+<section class="variant" id="v-figma">
+  <div class="v-head">
+    <div><div class="v-num">Вариант 02</div><h2 class="v-title">Холст Figma</h2></div>
+    <div class="v-notes">
+      <p><b>Как работает:</b> холст можно таскать мышью, колесо с Ctrl/⌘ — зум. Слева — слои, клик переносит к проекту. По холсту ходит твой курсор.</p>
+      <p><b>Плюсы:</b> мгновенно считывается «дизайнер, живёт в Figma». <b>Минусы:</b> выбивается из бумажной стилистики, нужно «исследовать», а рекрутер может не захотеть.</p>
+    </div>
+  </div>
+  <div class="figma">
+    <div class="fg-bar">
+      <div class="tools"><span class="on">➤</span><span>#</span><span>▢</span><span>✎</span><span>T</span></div>
+      <div class="file">Drafts / <b>Portfolio — Sergey Karpushkin</b></div>
+      <div class="zoom" id="fgZoom">100%</div>
+      <button class="fg-share" type="button">Share</button>
+    </div>
+    <div class="fg-layers" id="fgLayers"><h4>Layers</h4></div>
+    <div class="fg-canvas" id="fgCanvas">
+      <div class="fg-world" id="fgWorld"></div>
+      <div class="fg-hint">Перетаскивай холст · Ctrl/⌘ + колесо — зум</div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. Стопка -->
+<section class="variant" id="v-stack">
+  <div class="v-head">
+    <div><div class="v-num">Вариант 03</div><h2 class="v-title">Стопка карточек</h2></div>
+    <div class="v-notes">
+      <p><b>Как работает:</b> перетащи верхнюю карточку в сторону (или свайпни на телефоне) — она уходит в конец колоды. Клик открывает кейс.</p>
+      <p><b>Плюсы:</b> тактильно, отлично на мобильных. <b>Минусы:</b> видно один проект за раз, близко к текущей карусели.</p>
+    </div>
+  </div>
+  <div class="stack-wrap">
+    <div class="stack" id="stack"></div>
+    <div class="stack-side">
+      <div class="stack-count" id="stackCount"></div>
+      <h3 id="stackTitle"></h3>
+      <p id="stackDesc"></p>
+      <div class="btn-row">
+        <button class="btn ghost" type="button" id="stackPrev">← Назад</button>
+        <button class="btn ghost" type="button" id="stackNext">Дальше →</button>
+        <button class="btn" type="button" id="stackOpen">Смотреть кейс</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. Список -->
+<section class="variant" id="v-list">
+  <div class="v-head">
+    <div><div class="v-num">Вариант 04</div><h2 class="v-title">Редакционный список</h2></div>
+    <div class="v-notes">
+      <p><b>Как работает:</b> наведи на строку — она заливается цветом проекта, а рядом с курсором всплывает скриншот.</p>
+      <p><b>Плюсы:</b> выглядит дорого, масштабируется до 10+ проектов, быстро сканируется. <b>Минусы:</b> на трёх проектах пустовато (включи «+ сайты» сверху).</p>
+    </div>
+  </div>
+  <div class="ed" id="edList"></div>
+  <div class="ed-preview" id="edPreview"><img alt=""></div>
+</section>
+
+<!-- 5. Рабочий стол -->
+<section class="variant" id="v-desk">
+  <div class="v-head">
+    <div><div class="v-num">Вариант 05</div><h2 class="v-title">Рабочий стол</h2></div>
+    <div class="v-notes">
+      <p><b>Как работает:</b> клик по папке или иконке в доке открывает окно проекта. Окна можно таскать за верхнюю панель, красная точка закрывает.</p>
+      <p><b>Плюсы:</b> самый «вау». <b>Минусы:</b> превращается в игрушку, тяжелее на телефоне, легко потерять главное.</p>
+    </div>
+  </div>
+  <div class="desk" id="desk">
+    <div class="desk-menubar"><b>Sergey</b><span>Файл</span><span>Правка</span><span>Вид</span><span class="r" id="deskClock"></span></div>
+    <div class="desk-watermark">UX/UI<br>Designer</div>
+    <div class="desk-icons" id="deskIcons"></div>
+    <div class="desk-dock" id="deskDock"></div>
+  </div>
+</section>
+
+<div class="modal" id="modal">
+  <div class="modal-scrim" data-close></div>
+  <div class="modal-panel">
+    <button class="modal-close" type="button" data-close aria-label="Закрыть">✕</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var ALL = { projects:[], sites:[] };
+  var items = [];
+
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); }
+  function shots(p){ return (p.screens || []).filter(function(s){ return s && s.src; }); }
+  function firstShot(p){ var s = shots(p); return s.length ? s[0].src : (p.img || ''); }
+  function pad(n){ return String(n).padStart(2, '0'); }
+
+  function normalize(){
+    var list = ALL.projects.map(function(p){ return Object.assign({}, p, { kind:'project' }); });
+    if (document.getElementById('withSites').checked){
+      var tones = ['#7a3b2a', '#2f3a44', '#4b4d2b', '#3a3a3a'];
+      ALL.sites.forEach(function(s, i){
+        list.push(Object.assign({}, s, { kind:'site', tile:tones[i % tones.length], short:s.desc, screens:[{ src:s.img, caption:'Главная' }].concat(s.sitePreview ? [{ src:s.sitePreview, caption:'Сайт целиком' }] : []) }));
+      });
+    }
+    items = list;
+  }
+
+  // ---------- модалка ----------
+  var modal = document.getElementById('modal');
+  function openCase(i){
+    var p = items[i]; if (!p) return;
+    var sh = shots(p);
+    document.getElementById('modalContent').innerHTML =
+      '<div class="modal-meta"><span>' + esc(p.year) + '</span><span>' + esc(p.type) + '</span>' + (p.role ? '<span>' + esc(p.role) + '</span>' : '') + '</div>' +
+      '<h2>' + esc(p.title) + '</h2><p class="desc">' + esc(p.desc || p.short) + '</p>' +
+      '<div class="shots">' + sh.map(function(s){ return '<figure><img src="' + esc(s.src) + '" alt="" loading="lazy">' + (s.caption ? '<figcaption>' + esc(s.caption) + '</figcaption>' : '') + '</figure>'; }).join('') + '</div>' +
+      '<p class="note">Упрощённое превью. На сайте здесь откроется полный кейс.</p>';
+    modal.classList.add('open'); document.documentElement.style.overflow = 'hidden';
+    modal.querySelector('.modal-panel').scrollTop = 0;
+  }
+  function closeCase(){ modal.classList.remove('open'); document.documentElement.style.overflow = ''; }
+  modal.addEventListener('click', function(e){ if (e.target.closest('[data-close]')) closeCase(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeCase(); });
+
+  // ========== 1. Папки ==========
+  function renderFolders(){
+    document.getElementById('folders').innerHTML = items.map(function(p, i){
+      var sh = shots(p).slice(0, 3);
+      while (sh.length && sh.length < 3) sh.unshift(sh[0]);
+      return '<button class="folder" type="button" data-open="' + i + '" style="--c:' + esc(p.tile || '#161616') + '">' +
+        '<div class="folder-back"></div>' +
+        '<div class="folder-tab">' + pad(i + 1) + ' · ' + esc(p.title) + '</div>' +
+        sh.map(function(s){ return '<div class="sheet"><img src="' + esc(s.src) + '" alt="" loading="lazy"></div>'; }).join('') +
+        '<div class="folder-front">' +
+          '<div class="ff-top">' + (p.logo ? '<img class="ff-logo" src="' + esc(p.logo) + '" alt="">' : '<span></span>') +
+            '<span class="stamp">' + esc(p.year) + '<br>' + esc(p.kind === 'site' ? 'Сайт' : 'Продукт') + '</span></div>' +
+          '<div><h3>' + esc(p.title) + '</h3><p>' + esc(p.short) + '</p><div class="ff-open">Открыть папку →</div></div>' +
+        '</div>' +
+      '</button>';
+    }).join('');
+  }
+
+  // ========== 2. Холст Figma ==========
+  var fg = { x:0, y:0, z:1, frames:[] };
+  function renderFigma(){
+    var world = document.getElementById('fgWorld');
+    var layers = document.getElementById('fgLayers');
+    var html = '', lhtml = '<h4>Layers</h4>';
+    fg.frames = [];
+    var colW = 1360, rowH = 640;
+    items.forEach(function(p, i){
+      var col = i % 2, row = Math.floor(i / 2);
+      var ox = col * colW + (row % 2 ? 120 : 0), oy = row * rowH;
+      var sh = shots(p);
+      // обложка
+      html += '<div class="fg-frame cover" data-open="' + i + '" style="left:' + ox + 'px; top:' + oy + 'px; width:480px; height:360px;">' +
+        '<div class="lbl">' + esc(p.title) + ' / Cover</div>' +
+        '<div class="box" style="background:' + esc(p.tile || '#161616') + '">' +
+          (p.logo ? '<img class="logo" src="' + esc(p.logo) + '" alt="">' : '<span></span>') +
+          '<div><h3>' + esc(p.title) + '</h3><p>' + esc(p.short) + '</p></div>' +
+        '</div></div>';
+      // скриншоты
+      sh.slice(0, 3).forEach(function(s, k){
+        var w = k === 0 ? 560 : 360, h = k === 0 ? 360 : 230;
+        var x = [ox + 520, ox, ox + 400][k], y = [oy, oy + 400, oy + 400][k];
+        html += '<div class="fg-frame" data-open="' + i + '" style="left:' + x + 'px; top:' + y + 'px; width:' + w + 'px; height:' + h + 'px;">' +
+          '<div class="lbl">' + esc(p.title) + ' / ' + esc(s.caption || ('Screen ' + (k + 1))) + '</div>' +
+          '<div class="box"><img src="' + esc(s.src) + '" alt="" loading="lazy"></div></div>';
+      });
+      fg.frames.push({ x:ox, y:oy, w:1080, h:630 });
+      lhtml += '<button class="fg-layer" type="button" data-goto="' + i + '"><i>#</i>' + esc(p.title) + '</button>';
+    });
+    html += '<div class="fg-sticky" style="left:' + (colW - 220) + 'px; top:-170px;">Привет! Это мой рабочий холст. Кликай по фреймам, чтобы открыть кейс 👋</div>';
+    html += '<div class="fg-cursor" id="fgCursor"><svg width="18" height="22" viewBox="0 0 18 22"><path d="M1 1 L1 18 L6 13.5 L9.5 21 L12.5 19.6 L9 12.2 L16 12.2 Z" fill="#b5654a" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg><span>Sergey</span></div>';
+    world.innerHTML = html;
+    layers.innerHTML = lhtml;
+    fitFigma(0, false);
+  }
+  function applyFigma(){
+    document.getElementById('fgWorld').style.transform = 'translate(' + fg.x + 'px,' + fg.y + 'px) scale(' + fg.z + ')';
+    document.getElementById('fgZoom').textContent = Math.round(fg.z * 100) + '%';
+  }
+  function fitFigma(i, animate){
+    var c = document.getElementById('fgCanvas'), f = fg.frames[i];
+    if (!f) return;
+    var cw = c.clientWidth || 900, ch = c.clientHeight || 600;
+    fg.z = Math.min(1, Math.min((cw - 80) / f.w, (ch - 80) / f.h));
+    fg.x = (cw - f.w * fg.z) / 2 - f.x * fg.z;
+    fg.y = (ch - f.h * fg.z) / 2 - f.y * fg.z;
+    var w = document.getElementById('fgWorld');
+    w.style.transition = animate ? 'transform .7s cubic-bezier(.2,.8,.2,1)' : 'none';
+    applyFigma();
+    document.querySelectorAll('.fg-layer').forEach(function(l, k){ l.classList.toggle('on', k === i); });
+  }
+  (function figmaInteractions(){
+    var c = document.getElementById('fgCanvas'), w = document.getElementById('fgWorld');
+    var drag = null, moved = false;
+    c.addEventListener('pointerdown', function(e){
+      drag = { sx:e.clientX, sy:e.clientY, x:fg.x, y:fg.y }; moved = false;
+      w.style.transition = 'none';
+    });
+    window.addEventListener('pointermove', function(e){
+      if (!drag) return;
+      var dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+      if (!moved && Math.abs(dx) + Math.abs(dy) > 4){ moved = true; c.classList.add('dragging'); c.setPointerCapture && c.setPointerCapture(e.pointerId); }
+      if (moved){ fg.x = drag.x + dx; fg.y = drag.y + dy; applyFigma(); }
+    });
+    window.addEventListener('pointerup', function(){ drag = null; c.classList.remove('dragging'); });
+    c.addEventListener('click', function(e){
+      if (moved){ e.stopPropagation(); e.preventDefault(); moved = false; return; }
+    }, true);
+    c.addEventListener('wheel', function(e){
+      if (!(e.ctrlKey || e.metaKey)){ // обычная прокрутка — панорама
+        e.preventDefault(); w.style.transition = 'none';
+        fg.x -= e.deltaX; fg.y -= e.deltaY; applyFigma(); return;
+      }
+      e.preventDefault(); w.style.transition = 'none';
+      var r = c.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+      var nz = Math.min(2, Math.max(0.15, fg.z * (e.deltaY < 0 ? 1.1 : 0.9)));
+      fg.x = mx - (mx - fg.x) * (nz / fg.z); fg.y = my - (my - fg.y) * (nz / fg.z); fg.z = nz; applyFigma();
+    }, { passive:false });
+    document.getElementById('fgLayers').addEventListener('click', function(e){
+      var b = e.target.closest('[data-goto]'); if (b) fitFigma(+b.dataset.goto, true);
+    });
+    // курсор «Sergey» ходит между фреймами
+    var step = 0;
+    setInterval(function(){
+      var cur = document.getElementById('fgCursor'); if (!cur || !fg.frames.length) return;
+      var f = fg.frames[step % fg.frames.length], k = step % 3;
+      var x = f.x + [200, 760, 300][k], y = f.y + [180, 160, 520][k];
+      cur.style.transform = 'translate(' + x + 'px,' + y + 'px)';
+      step++;
+    }, 2200);
+  })();
+
+  // ========== 3. Стопка ==========
+  var order = [];
+  function renderStack(){
+    order = items.map(function(_, i){ return i; });
+    document.getElementById('stack').innerHTML = items.map(function(p, i){
+      return '<div class="s-card" data-i="' + i + '" style="--c:' + esc(p.tile || '#161616') + '">' +
+        '<div class="s-shot"><img src="' + esc(firstShot(p)) + '" alt="" loading="lazy" draggable="false"></div>' +
+        '<div class="s-body"><div class="s-meta"><span>' + esc(p.type) + '</span><span>' + esc(p.year) + '</span></div><h3>' + esc(p.title) + '</h3><p>' + esc(p.short) + '</p></div>' +
+      '</div>';
+    }).join('');
+    layoutStack();
+  }
+  function layoutStack(){
+    var cards = document.querySelectorAll('#stack .s-card');
+    order.forEach(function(idx, pos){
+      var el = cards[idx];
+      var depth = Math.min(pos, 4);
+      el.style.zIndex = 100 - pos;
+      el.style.opacity = pos > 4 ? 0 : 1;
+      el.style.transform = 'translate(' + (depth * 14) + 'px,' + (depth * -10) + 'px) rotate(' + (pos === 0 ? 0 : (pos % 2 ? 4 : -3) * Math.min(depth, 2) / 2) + 'deg) scale(' + (1 - depth * 0.04) + ')';
+    });
+    var top = items[order[0]];
+    document.getElementById('stackCount').textContent = pad(order[0] + 1) + ' / ' + pad(items.length);
+    document.getElementById('stackTitle').textContent = top ? top.title : '';
+    document.getElementById('stackDesc').textContent = top ? (top.desc || top.short) : '';
+  }
+  function stackNext(){ order.push(order.shift()); layoutStack(); }
+  function stackPrev(){ order.unshift(order.pop()); layoutStack(); }
+  (function stackInteractions(){
+    var st = document.getElementById('stack'), drag = null;
+    st.addEventListener('pointerdown', function(e){
+      var card = e.target.closest('.s-card'); if (!card || +card.dataset.i !== order[0]) return;
+      drag = { el:card, sx:e.clientX, sy:e.clientY, dx:0, moved:false }; card.classList.add('dragging');
+      card.setPointerCapture(e.pointerId);
+    });
+    st.addEventListener('pointermove', function(e){
+      if (!drag) return;
+      drag.dx = e.clientX - drag.sx; var dy = (e.clientY - drag.sy) * .3;
+      if (Math.abs(drag.dx) > 5) drag.moved = true;
+      drag.el.style.transform = 'translate(' + drag.dx + 'px,' + dy + 'px) rotate(' + (drag.dx / 18) + 'deg)';
+    });
+    function end(){
+      if (!drag) return;
+      var d = drag; drag = null; d.el.classList.remove('dragging');
+      if (!d.moved){ layoutStack(); openCase(+d.el.dataset.i); return; }
+      if (Math.abs(d.dx) > 110){
+        d.el.style.transform = 'translate(' + (d.dx > 0 ? 600 : -600) + 'px, 40px) rotate(' + (d.dx > 0 ? 25 : -25) + 'deg)';
+        d.el.style.opacity = 0;
+        setTimeout(stackNext, 260);
+      } else layoutStack();
+    }
+    st.addEventListener('pointerup', end);
+    st.addEventListener('pointercancel', end);
+    document.getElementById('stackNext').addEventListener('click', stackNext);
+    document.getElementById('stackPrev').addEventListener('click', stackPrev);
+    document.getElementById('stackOpen').addEventListener('click', function(){ openCase(order[0]); });
+  })();
+
+  // ========== 4. Список ==========
+  function renderList(){
+    document.getElementById('edList').innerHTML = items.map(function(p, i){
+      return '<button class="ed-row" type="button" data-open="' + i + '" data-img="' + esc(firstShot(p)) + '" style="--c:' + esc(p.tile || '#161616') + '">' +
+        '<span class="ed-n">' + pad(i + 1) + '</span>' +
+        '<span class="ed-title">' + esc(p.title) + '</span>' +
+        '<span class="ed-type">' + esc(p.type) + '</span>' +
+        '<span class="ed-year">' + esc(p.year) + '</span>' +
+        '<span class="ed-arrow">→</span>' +
+        '<span class="ed-thumb"><img src="' + esc(firstShot(p)) + '" alt="" loading="lazy"></span>' +
+      '</button>';
+    }).join('');
+  }
+  (function listInteractions(){
+    var list = document.getElementById('edList'), pv = document.getElementById('edPreview'), img = pv.querySelector('img');
+    var tx = 0, ty = 0, cx = 0, cy = 0, raf = null;
+    function loop(){ cx += (tx - cx) * .18; cy += (ty - cy) * .18; pv.style.left = cx + 'px'; pv.style.top = cy + 'px'; raf = requestAnimationFrame(loop); }
+    list.addEventListener('mousemove', function(e){
+      var row = e.target.closest('.ed-row');
+      tx = e.clientX + 200; ty = e.clientY;
+      if (tx + 180 > window.innerWidth) tx = e.clientX - 200;
+      if (row){ if (img.getAttribute('src') !== row.dataset.img) img.src = row.dataset.img; pv.classList.add('show'); if (!raf){ cx = tx; cy = ty; loop(); } }
+    });
+    list.addEventListener('mouseleave', function(){ pv.classList.remove('show'); cancelAnimationFrame(raf); raf = null; });
+  })();
+
+  // ========== 5. Рабочий стол ==========
+  var zTop = 10, openWins = {};
+  function renderDesk(){
+    document.querySelectorAll('#desk .d-win').forEach(function(w){ w.remove(); });
+    openWins = {};
+    document.getElementById('deskIcons').innerHTML = items.map(function(p, i){
+      return '<button class="d-icon" type="button" data-win="' + i + '" style="--c:' + esc(p.tile || '#161616') + '"><span class="ico"></span>' + esc(p.title) + '</button>';
+    }).join('');
+    document.getElementById('deskDock').innerHTML = items.map(function(p, i){
+      return '<button type="button" data-win="' + i + '" title="' + esc(p.title) + '" style="--c:' + esc(p.tile || '#161616') + '">' + esc(p.title.replace(/[^A-Za-zА-Яа-я0-9]/g, '').slice(0, 2).toUpperCase()) + '</button>';
+    }).join('');
+  }
+  function openWin(i){
+    var desk = document.getElementById('desk');
+    if (openWins[i]){ openWins[i].style.zIndex = ++zTop; return; }
+    var p = items[i], n = Object.keys(openWins).length;
+    var w = document.createElement('div');
+    w.className = 'd-win';
+    w.style.left = Math.min(150 + n * 40 + i * 30, desk.clientWidth - 540) + 'px';
+    w.style.top = (56 + n * 34) + 'px';
+    w.style.zIndex = ++zTop;
+    w.innerHTML = '<div class="d-win-bar"><div class="dots"><i data-x title="Закрыть"></i><i></i><i></i></div><div class="t">' + esc(p.title) + ' — Кейс</div></div>' +
+      '<div class="d-win-shot"><img src="' + esc(firstShot(p)) + '" alt=""></div>' +
+      '<div class="d-win-body"><h3>' + esc(p.title) + '</h3><p>' + esc(p.short) + '</p><button class="btn" type="button" data-open="' + i + '">Открыть кейс</button></div>';
+    desk.appendChild(w);
+    openWins[i] = w;
+    syncDock();
+    w.addEventListener('pointerdown', function(){ w.style.zIndex = ++zTop; });
+    w.querySelector('[data-x]').addEventListener('click', function(e){ e.stopPropagation(); w.remove(); delete openWins[i]; syncDock(); });
+    var bar = w.querySelector('.d-win-bar'), d = null;
+    bar.addEventListener('pointerdown', function(e){ if (e.target.closest('[data-x]')) return; d = { sx:e.clientX, sy:e.clientY, l:w.offsetLeft, t:w.offsetTop }; bar.setPointerCapture(e.pointerId); bar.style.cursor = 'grabbing'; });
+    bar.addEventListener('pointermove', function(e){
+      if (!d) return;
+      var nl = Math.max(-w.offsetWidth + 80, Math.min(desk.clientWidth - 80, d.l + e.clientX - d.sx));
+      var nt = Math.max(28, Math.min(desk.clientHeight - 60, d.t + e.clientY - d.sy));
+      w.style.left = nl + 'px'; w.style.top = nt + 'px';
+    });
+    bar.addEventListener('pointerup', function(){ d = null; bar.style.cursor = ''; });
+  }
+  function syncDock(){
+    document.querySelectorAll('#deskDock button').forEach(function(b){ b.classList.toggle('open', !!openWins[b.dataset.win]); });
+    document.querySelectorAll('#deskIcons .d-icon').forEach(function(b){ b.classList.toggle('on', !!openWins[b.dataset.win]); });
+  }
+  document.getElementById('desk').addEventListener('click', function(e){
+    var b = e.target.closest('[data-win]'); if (b) openWin(+b.dataset.win);
+  });
+  (function clock(){
+    var el = document.getElementById('deskClock');
+    function tick(){ var d = new Date(); el.textContent = d.toLocaleDateString('ru-RU', { weekday:'short', day:'numeric', month:'short' }) + '  ' + d.toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' }); }
+    tick(); setInterval(tick, 30000);
+  })();
+
+  // ---------- общие клики «открыть кейс» ----------
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('[data-open]');
+    if (b && !e.defaultPrevented) openCase(+b.dataset.open);
+  });
+
+  // подсветка текущего варианта в навигации
+  var links = document.querySelectorAll('#topnav a');
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if (en.isIntersecting) links.forEach(function(a){ a.classList.toggle('active', a.getAttribute('href') === '#' + en.target.id); });
+    });
+  }, { rootMargin:'-45% 0px -50% 0px' });
+  document.querySelectorAll('.variant').forEach(function(s){ io.observe(s); });
+
+  function renderAll(){ normalize(); renderFolders(); renderFigma(); renderStack(); renderList(); renderDesk(); }
+  document.getElementById('withSites').addEventListener('change', renderAll);
+  window.addEventListener('resize', function(){ fitFigma(0, false); });
+
+  fetch('content.json', { cache:'no-store' })
+    .then(function(r){ return r.json(); })
+    .then(function(d){ ALL.projects = d.projects || []; ALL.sites = d.sites || []; renderAll(); })
+    .catch(function(e){ document.body.insertAdjacentHTML('afterbegin', '<p style="padding:20px;color:#b5654a">Не удалось загрузить content.json — открой страницу через сервер: python3 server.py → http://localhost:8000/variants.html</p>'); console.error(e); });
+})();
+</script>
+</body>
+</html>
