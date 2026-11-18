@@ -318,6 +318,33 @@
     display:flex; align-items:center; justify-content:center;
   }
   .cf-card-logo{ width:56%; max-width:220px; height:auto; }
+  /* screenshot preview layer (p.screens) — stacked images cross-faded via opacity */
+  .cf-card-screens{ position:absolute; inset:0; z-index:1; }
+  .cf-card-screen{
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; display:block;
+    opacity:0; transition:opacity .7s ease;
+  }
+  .cf-card-screen.is-visible{ opacity:1; }
+  /* side (non-active) cards: static first screenshot, slightly dimmed */
+  .cf-card:not(.is-active) .cf-card-screens::after{
+    content:''; position:absolute; inset:0; background:rgba(22,22,22,.35);
+  }
+  .cf-card:not(.is-active) .cf-card-screen:first-child{ opacity:1; }
+  /* active card with screens: logo shrinks to a small corner badge over the preview */
+  .cf-card.cf-has-screens.is-active .cf-card-logo{
+    position:absolute; left:12px; bottom:12px; z-index:2;
+    width:auto; max-width:96px; max-height:44px; height:auto;
+    object-fit:contain; padding:8px 10px; border-radius:12px;
+    background:rgba(0,0,0,.45); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  }
+  /* meta line under the active card title: year · type · duration */
+  .cf-card-meta{
+    display:none;
+    font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:.08em;
+    color:rgba(255,255,255,.45); margin:-4px 0 12px;
+  }
+  .cf-card.is-active .cf-card-meta{ display:block; }
   .cf-card-chip{
     position:absolute; top:12px; right:12px; z-index:2;
     background:rgba(0,0,0,.45); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
@@ -883,14 +910,22 @@
   function renderProjects(projects){
     var track = document.getElementById('cfTrack');
     track.innerHTML = projects.map(function(p, i){
+      var screens = (p.screens || []).filter(function(s){ return s && s.src; });
+      var metaParts = [p.year, p.type, p.duration].filter(Boolean);
       return '' +
-        '<article class="cf-card" data-index="' + i + '" style="--tile:' + esc(p.tile || '#161616') + ';">' +
+        '<article class="cf-card' + (screens.length ? ' cf-has-screens' : '') + '" data-index="' + i + '" style="--tile:' + esc(p.tile || '#161616') + ';">' +
           '<div class="cf-card-media">' +
             (p.chip ? '<span class="cf-card-chip">' + esc(p.chip) + '</span>' : '') +
+            (screens.length
+              ? '<div class="cf-card-screens">' + screens.map(function(s, j){
+                  return '<img class="cf-card-screen' + (j === 0 ? ' is-visible' : '') + '" src="' + esc(s.src) + '" alt="' + esc(s.caption || p.title) + '"' + (j > 0 ? ' aria-hidden="true"' : '') + ' loading="lazy">';
+                }).join('') + '</div>'
+              : '') +
             (p.logo ? '<img class="cf-card-logo" src="' + esc(p.logo) + '" alt="' + esc(p.title) + '">' : '') +
           '</div>' +
           '<div class="cf-card-body">' +
             '<h3>' + esc(p.title) + '</h3>' +
+            (metaParts.length ? '<div class="cf-card-meta">' + esc(metaParts.join(' · ')) + '</div>' : '') +
             '<p>' + esc(p.short) + '</p>' +
             '<button type="button" class="tl-card-btn" data-case="' + esc(p.key) + '">Смотреть кейс →</button>' +
           '</div>' +
@@ -1052,6 +1087,44 @@
     var OPACITY = [1, 0.9, 0.55, 0.25];
     var lastDx = {};
 
+    // screenshot flip-through on hover (active card only): screens 1→2→3→1 every ~1.6s,
+    // cross-faded purely via the .cf-card-screen opacity transition — no layout thrash.
+    var SCREEN_INTERVAL = 1600;
+    var reduceMotion = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var screenTimer = null, screenIdx = {};
+
+    function stopScreenCycle(){
+      if (screenTimer){ clearInterval(screenTimer); screenTimer = null; }
+    }
+    function showScreen(card, imgs, idx){
+      screenIdx[card.getAttribute('data-index')] = idx;
+      for (var k = 0; k < imgs.length; k++){
+        imgs[k].classList.toggle('is-visible', k === idx);
+        if (k === idx) imgs[k].removeAttribute('aria-hidden');
+        else imgs[k].setAttribute('aria-hidden', 'true');
+      }
+    }
+    function startScreenCycle(card){
+      stopScreenCycle();
+      if (reduceMotion || !card) return;
+      var imgs = card.querySelectorAll('.cf-card-screens .cf-card-screen');
+      if (imgs.length < 2) return;
+      var key = card.getAttribute('data-index');
+      if (!(key in screenIdx)) screenIdx[key] = 0;
+      screenTimer = setInterval(function(){
+        // safety: if the card is no longer the active one, stop cleanly
+        if (!card.classList.contains('is-active')){ stopScreenCycle(); return; }
+        screenIdx[key] = (screenIdx[key] + 1) % imgs.length;
+        showScreen(card, imgs, screenIdx[key]);
+      }, SCREEN_INTERVAL);
+    }
+    function resetScreens(card){
+      if (!card) return;
+      var imgs = card.querySelectorAll('.cf-card-screens .cf-card-screen');
+      if (imgs.length) showScreen(card, imgs, 0);
+    }
+
     function render(){
       var stageW = stage.offsetWidth;
       cards.forEach(function(card, i){
@@ -1060,6 +1133,12 @@
         if (raw < -len / 2) raw += len;
         var abs = Math.abs(raw);
         var sign = raw === 0 ? 0 : (raw > 0 ? 1 : -1);
+        card.classList.toggle('is-active', i === active);
+        if (i !== active){
+          // leaving active state: stop any running cycle and restore first screen
+          if (screenTimer) stopScreenCycle();
+          resetScreens(card);
+        }
         if (abs > 3){
           card.style.opacity = '0';
           card.style.pointerEvents = 'none';
@@ -1132,6 +1211,44 @@
 
     prevBtn.addEventListener('click', prev);
     nextBtn.addEventListener('click', next);
+
+    // hover flip-through: only while hovering the currently active card.
+    // pointerover/pointerout bubble (unlike enter/leave) and pair with
+    // relatedTarget so we start/stop exactly when the pointer crosses into
+    // or out of the active card — including via its children.
+    stage.addEventListener('pointerover', function(e){
+      var card = e.target.closest ? e.target.closest('.cf-card') : null;
+      if (!card || !card.classList.contains('is-active')) return;
+      var from = e.relatedTarget;
+      if (from && card.contains(from)) return; // already inside this card
+      startScreenCycle(card);
+    });
+    stage.addEventListener('pointerout', function(e){
+      var card = e.target.closest ? e.target.closest('.cf-card') : null;
+      if (!card) return;
+      var to = e.relatedTarget;
+      if (to && card.contains(to)) return; // still inside this card
+      stopScreenCycle();
+      resetScreens(card);
+    });
+    // safety nets: never leave a timer running when the pointer/keyboard focus
+    // leaves the carousel or the tab is hidden
+    stage.addEventListener('pointerleave', function(){
+      stopScreenCycle();
+      resetScreens(cards[active]);
+    });
+    stage.addEventListener('focusout', function(e){
+      if (!stage.contains(e.relatedTarget)){
+        stopScreenCycle();
+        resetScreens(cards[active]);
+      }
+    });
+    document.addEventListener('visibilitychange', function(){
+      if (document.hidden){
+        stopScreenCycle();
+        resetScreens(cards[active]);
+      }
+    });
 
     stage.addEventListener('keydown', function(e){
       if (e.key === 'ArrowLeft') prev();
